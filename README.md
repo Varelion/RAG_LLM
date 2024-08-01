@@ -12,28 +12,85 @@ All using open-source tools.
 
 In our specific example, we'll build NutriChat, a RAG workflow that allows a person to query a 1200 page PDF version of a Nutrition Textbook and have an LLM generate responses back to the query based on passages of text from the textbook.
 
-PDF source: https://pressbooks.oer.hawaii.edu/humannutrition2/ 
+PDF source: https://pressbooks.oer.hawaii.edu/humannutrition2/
 
-You can also run notebook `00-simple-local-rag.ipynb` directly in [Google Colab](https://colab.research.google.com/github/mrdbourke/simple-local-rag/blob/main/00-simple-local-rag.ipynb). 
+You can also run notebook `00-simple-local-rag.ipynb` directly in [Google Colab](https://colab.research.google.com/github/mrdbourke/simple-local-rag/blob/main/00-simple-local-rag.ipynb).
 
 TODO:
-- [ ] Finish setup instructions 
-- [x] Make header image of workflow 
+- [ ] Finish setup instructions
+- [x] Make header image of workflow
 - [ ] Add intro to RAG info in README?
-- [ ] Add extensions to README 
-- [x] Record video of code writing/walkthrough - DONE, follow along with each line of code on YouTube: https://youtu.be/qN_2fnOPY-M 
+- [ ] Add extensions to README
+- [x] Record video of code writing/walkthrough - DONE, follow along with each line of code on YouTube: https://youtu.be/qN_2fnOPY-M
+
+• Create and run local RAG pipline form scratch
+• Except training embedding or llm model
+
+## What is RAG?
+ Rag stands for retrieval-augmented generation. It takes information and passes it to an LLM, so it can generate outputs based on that information.
+ Retrieval -- find relevant information given a query, e.g. "what are the macronutrients and what do they do?" -> retrieves passages of text related to the macronutrients from a nutrition textbook. In this scenario, this textbook is known as the "RAG CORPUS"
+ Augmented -- We want to take the relevant information that we got from retrieval, and augment our input (prompt)  to an LLM with that relevant information.
+ Generation -- Take the first two steps, and pass them to an LLM, for generative outputs.
+
+## Why Rag?
+ The main goal of RAG is to improve the generational output of LLMs.
+ 1. Prevent hallucinations -- LLms are incredibly good at generating *good looking* text, but this text doesn't mean that is it factual. RaAG helps the LLM provide information that IS factual.
+ 2. Work with custom data -- Many base LLms are trained with internet-scale data. This means that they have a fairly good understanding of language in general. However, it also does mean that a lot of their responses can be general in nature. So, RAG helps create specific responses based on specific documents. E.G. Your own company's customer support documents.
+
+## What can RAG be used for?
+
+ Customer support Q&A chat -- treat your existing customer support documents as a resource, and when your customer asks a question you could have a retrieval system retrieve relevant documentation snippets, and then have an LLM craft those snippets into an answer. Think of this as "chat bot for your documentation".
+ Email chain analysis -- Let's say you're a large insurance company and you have chains and chains of emails of customer claims. You could use a RAG pipeline to find relevant information from those email chains and then use an LLM to process that information into structured data.
+ Company internal documentation chat
+ Textbook Q&A -- Le'ts say you're a nutrition student and you've got a 1200 page textbook read, you could build a RAG pipeline to go through the textbook and find relevant passages to the questions you have.
+
+ Common theme here : take your relevant documents and to a query and process them with an LLM.add()
+ From this angle, you can consider an LLM as a calculator for words.add()
+
+## Why Local?
+
+ Privacy - if you have private documentation, maybe you don't want to send that to an API. You want to setup an LLM and run it on your own hardware.
+ Speed -- Whenever you use an API, you have to send some kind of data across the internet. This takes time. Running locally means we don't have to wait for transfers of data.add()
+  Cost -- If you own your hardware, the cost of is paid. It may have a large cost to begin with, but overtime you don't have to keep paying API fees.
+ No vendor lock-in -- If oyu run your own software/hardware. If your vendor combat shuts down, or increases price, you're not liable.
+
+## What we're going to build
+ https://whimsical.com/simple-local-rag-workflow-39kToR3yNf7E8kY4sS2tjV
+
+We're going to build 'NutriChat' to "Chat with a nutrition textbook".
+
+Specifically:
+1. Open a PDF document (you could use almost any PDF here or even a collection of PDFs)
+2. Format the text of the PDF textbook ready for an embedding model.
+3. Embed all of the chunks of text into the textbook and turn them into numerical representations (embedding) which can store for later.
+4. Build a retrieval system that uses vector search to find relevant chunk of text based on a query.
+5. Create a prompt that incorporates the retrieved pieces of text.
+6. GEnerate an answer to a query based on the passages of the textbook with an LLM.
+
+
+All Locally!
+1. Steps 1-3: Document pre-processing and embedding creation.
+2. Steps 4-6: Search and answer.
+3. Embed text chunks with embedding model.
+4. Save embeddings to file for later (embeddings will store on file for many years or until you lose your hard drive.)
+
+## Document / Text PRocessing and embedding creation
+
+Ingredients:
+* PDF Document of choice (Note: this could be almost any kind of document, I've just chosen to focus on PDFs for now).
+*
 
 ## Getting Started
 
 Two main options:
-1. If you have a local NVIDIA GPU with 5GB+ VRAM, follow the steps below to have this pipeline run locally on your machine. 
-2. If you don’t have a local NVIDIA GPU, you can follow along in Google Colab and have it run on a NVIDIA GPU there. 
+1. If you have a local NVIDIA GPU with 5GB+ VRAM, follow the steps below to have this pipeline run locally on your machine.
+2. If you don’t have a local NVIDIA GPU, you can follow along in Google Colab and have it run on a NVIDIA GPU there.
 
 ## Prerequisites
 
-- Comfortable writing Python code. 
+- Comfortable writing Python code.
 - 1-2 beginner machine learning/deep learning courses.
-- Familiarity with PyTorch, see my [beginner PyTorch video](https://youtu.be/Z_ikDlimN6A?si=NIkrslkvHaNdlYgx) for more. 
+- Familiarity with PyTorch, see my [beginner PyTorch video](https://youtu.be/Z_ikDlimN6A?si=NIkrslkvHaNdlYgx) for more.
 
 ## Setup
 
@@ -63,7 +120,7 @@ Linux/macOS:
 source venv/bin/activate
 ```
 
-Windows: 
+Windows:
 ```
 .\venv\Scripts\activate
 ```
@@ -96,7 +153,7 @@ Jupyter Notebook
 jupyter notebook
 ```
 
-**Setup notes:** 
+**Setup notes:**
 * If you run into any install/setup troubles, please leave an issue.
 * To get access to the Gemma LLM models, you will have to [agree to the terms & conditions](https://huggingface.co/google/gemma-7b-it) on the Gemma model page on Hugging Face. You will then have to authorize your local machine via the [Hugging Face CLI/Hugging Face Hub `login()` function](https://huggingface.co/docs/huggingface_hub/en/quick-start#authentication). Once you've done this, you'll be able to download the models. If you're using Google Colab, you can add a [Hugging Face token](https://huggingface.co/docs/hub/en/security-tokens) to the "Secrets" tab.
 * For speedups, installing and compiling Flash Attention 2 (faster attention implementation) can take ~5 minutes to 3 hours depending on your system setup. See the [Flash Attention 2 GitHub](https://github.com/Dao-AILab/flash-attention/tree/main) for more. In particular, if you're running on Windows, see this [GitHub issue thread](https://github.com/Dao-AILab/flash-attention/issues/595). I've commented out `flash-attn` in the requirements.txt due to compile time, feel free to uncomment if you'd like use it or run `pip install flash-attn`.
@@ -130,7 +187,7 @@ employed in a wide variety of scenarios with direct benefit to society, for exam
 with a medical index and asking it open-domain questions on that topic, or by helping people be more
 effective at their jobs.
 
-RAG can also be a much quicker solution to implement than fine-tuning an LLM on specific data. 
+RAG can also be a much quicker solution to implement than fine-tuning an LLM on specific data.
 
 
 ## What kind of problems can RAG be used for?
@@ -159,21 +216,21 @@ From a speed standpoint, it means you won't necessarily have to wait for an API 
 
 And from a cost standpoint, running on your own hardware often has a heavier starting cost but little to no costs after that.
 
-Performance wise, LLM APIs may still perform better than an open-source model running locally on general tasks but there are more and more examples appearing of smaller, focused models outperforming larger models. 
+Performance wise, LLM APIs may still perform better than an open-source model running locally on general tasks but there are more and more examples appearing of smaller, focused models outperforming larger models.
 
 ## Key terms
 
 | Term | Description |
-| ----- | ----- | 
+| ----- | ----- |
 | **Token** | A sub-word piece of text. For example, "hello, world!" could be split into ["hello", ",", "world", "!"]. A token can be a whole word,<br> part of a word or group of punctuation characters. 1 token ~= 4 characters in English, 100 tokens ~= 75 words.<br> Text gets broken into tokens before being passed to an LLM. |
 | **Embedding** | A learned numerical representation of a piece of data. For example, a sentence of text could be represented by a vector with<br> 768 values. Similar pieces of text (in meaning) will ideally have similar values. |
 | **Embedding model** | A model designed to accept input data and output a numerical representation. For example, a text embedding model may take in 384 <br>tokens of text and turn it into a vector of size 768. An embedding model can and often is different to an LLM model. |
 | **Similarity search/vector search** | Similarity search/vector search aims to find two vectors which are close together in high-demensional space. For example, <br>two pieces of similar text passed through an embedding model should have a high similarity score, whereas two pieces of text about<br> different topics will have a lower similarity score. Common similarity score measures are dot product and cosine similarity. |
 | **Large Language Model (LLM)** | A model which has been trained to numerically represent the patterns in text. A generative LLM will continue a sequence when given a sequence. <br>For example, given a sequence of the text "hello, world!", a genertive LLM may produce "we're going to build a RAG pipeline today!".<br> This generation will be highly dependant on the training data and prompt. |
 | **LLM context window** | The number of tokens a LLM can accept as input. For example, as of March 2024, GPT-4 has a default context window of 32k tokens<br> (about 96 pages of text) but can go up to 128k if needed. A recent open-source LLM from Google, Gemma (March 2024) has a context<br> window of 8,192 tokens (about 24 pages of text). A higher context window means an LLM can accept more relevant information<br> to assist with a query. For example, in a RAG pipeline, if a model has a larger context window, it can accept more reference items<br> from the retrieval system to aid with its generation. |
-| **Prompt** | A common term for describing the input to a generative LLM. The idea of "[prompt engineering](https://en.wikipedia.org/wiki/Prompt_engineering)" is to structure a text-based<br> (or potentially image-based as well) input to a generative LLM in a specific way so that the generated output is ideal. This technique is<br> possible because of a LLMs capacity for in-context learning, as in, it is able to use its representation of language to breakdown <br>the prompt and recognize what a suitable output may be (note: the output of LLMs is probable, so terms like "may output" are used). | 
+| **Prompt** | A common term for describing the input to a generative LLM. The idea of "[prompt engineering](https://en.wikipedia.org/wiki/Prompt_engineering)" is to structure a text-based<br> (or potentially image-based as well) input to a generative LLM in a specific way so that the generated output is ideal. This technique is<br> possible because of a LLMs capacity for in-context learning, as in, it is able to use its representation of language to breakdown <br>the prompt and recognize what a suitable output may be (note: the output of LLMs is probable, so terms like "may output" are used). |
 
-# TK - Extensions 
+# TK - Extensions
 
 Coming soon.
 
